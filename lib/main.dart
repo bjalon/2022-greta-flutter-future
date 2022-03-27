@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_web/post.dart';
+import 'package:flutter_web/post_fetcher.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/http.dart';
 
@@ -17,7 +18,7 @@ class MainView extends StatefulWidget {
 }
 
 class _MainViewState extends State<MainView> {
-  String? data;
+  bool isPostShown = false;
 
   @override
   Widget build(BuildContext context) {
@@ -27,45 +28,11 @@ class _MainViewState extends State<MainView> {
       body: Column(
         children: [
           IconButton(
-              onPressed: doDownloadButton, icon: const Icon(Icons.download)),
-          Text(data ?? "en attente de téléchargement "),
-          FutureBuilder(
-              builder: (context, snapshot) {
-                if (snapshot.hasData) {
-                  final post = snapshot.data as Post;
-                  return Column(
-                    children: [
-                      Text("Titre: ${post.title}"),
-                      Text("Description: ${post.content}"),
-                    ],
-                  );
-                } else if (snapshot.hasError) {
-                  return Text("${snapshot.error}");
-                } else {
-                  return const CircularProgressIndicator();
-                }
-              },
-              future: doDownloadFutureBuilder())
+              onPressed: () => setState(() => isPostShown = true),
+              icon: Icon(Icons.upload_file)),
+          if (isPostShown) PostFetcher()
         ],
       ),
     ));
-  }
-
-  Future<Post> doDownloadFutureBuilder() async {
-    // return Future.delayed(const Duration(seconds: 3), () => "Hello world");
-    Uri url = Uri.parse("https://jsonplaceholder.typicode.com/posts/1");
-    await Future.delayed(const Duration(seconds: 3));
-    var response = await http.get(url);
-    if (response.statusCode == 200) {
-      Map<String, dynamic> json = jsonDecode(response.body);
-      return Post.fromJson(json);
-    } else {
-      throw Exception("Erreur de téléchargement");
-    }
-  }
-
-  void doDownloadButton() async {
-    Future.delayed(
-        const Duration(seconds: 3), () => setState(() => data = "Hello world !"));
   }
 }
